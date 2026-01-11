@@ -108,26 +108,28 @@ public class ListHeroAdapter extends RecyclerView.Adapter<ListHeroAdapter.HeroVi
     @Override
     public void onBindViewHolder(@NonNull HeroViewHolder holder, int position) {
         ListHeroModel hero = heroList.get(position);
+        String heroName = hero.getHeroName();
         String heroUrl = hero.getHeroUrl();
 
-        holder.txtName.setText(hero.getHeroUrl());
+        holder.txtName.setText(hero.getHeroName());
 
-        String fileName = hero.getHeroIcon();
+        String heroIcon = hero.getHeroIcon();
 
         // 👉 Set tag CardView = CV_(nama_hero)
-        String safeHeroName = heroUrl.toLowerCase().replace(" ", "_");
+        String safeHeroName = heroName.replace(" ", "_");
         holder.itemView.setTag("CV_" + safeHeroName);
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(context, DetailHeroes.class);
 
             // Kirim extra (nilai nama hero)
+            intent.putExtra("hero_name", heroName);
             intent.putExtra("hero_url", heroUrl);
 
             context.startActivity(intent);
         });
 
-        String imageUrl = (fileName != null && !fileName.trim().isEmpty())
-                ? BASE_URL + fileName.trim()
+        String imageUrl = (heroIcon != null && !heroIcon.trim().isEmpty())
+                ? BASE_URL + heroIcon.trim()
                 : DEFAULT_IMAGE;
 
         // LOAD IMAGE DENGAN CALLBACK FALLBACK

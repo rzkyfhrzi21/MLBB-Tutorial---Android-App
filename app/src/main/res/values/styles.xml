@@ -2,15 +2,18 @@
 <resources>
 
     <!-- Style tombol menu utama -->
-    <style name="MenuButton">
+    <style name="MenuButton" parent="Widget.MaterialComponents.Button">
         <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_marginBottom">16dp</item>
-        <item name="android:background">@drawable/border_teal</item>
-        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:layout_height">52dp</item>
+        <item name="android:layout_marginBottom">14dp</item>
+
+        <!-- WARNA PRIMARY -->
+        <item name="backgroundTint">@color/primary</item>
+        <item name="cornerRadius">26dp</item>
+
+        <item name="android:textColor">@color/dark_black</item>
         <item name="android:textSize">16sp</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:padding">14dp</item>
     </style>
 
 </resources>
