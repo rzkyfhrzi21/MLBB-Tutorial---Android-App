@@ -14,25 +14,25 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MLBBTutorial">
         <activity
-            android:name=".Tes"
+            android:name=".TentangActivity"
+            android:exported="false" />
+        <activity
+            android:name=".DetailHeroes"
+            android:exported="false" />
+        <activity
+            android:name=".ListItemByCategory"
             android:exported="false" />
         <activity
             android:name=".ListBattleSpells"
             android:exported="false" />
         <activity
-            android:name=".UpdatePatch"
-            android:exported="false" />
-        <activity
             android:name=".ListEmblems"
             android:exported="false" />
         <activity
-            android:name=".ListItems"
+            android:name=".ListItemCategory"
             android:exported="false" />
         <activity
             android:name=".ListHeroes"
-            android:exported="false" />
-        <activity
-            android:name=".DetailHeroes"
             android:exported="false" />
         <activity
             android:name=".MainActivity"

@@ -1,13 +1,7 @@
 package com.example.mlbbtutorial;
 
-import android.util.Log;
-
-import android.graphics.Bitmap;
-import android.graphics.BitmapShader;
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.Shader;
 import android.os.Bundle;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -16,275 +10,193 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
-import com.example.mlbbtutorial.adapter.SkillAdapter;
-import com.example.mlbbtutorial.model.SkillModel;
+import com.example.mlbbtutorial.adapter.HeroAttributeAdapter;
+import com.example.mlbbtutorial.adapter.HeroSkillAdapter;
+import com.example.mlbbtutorial.model.HeroSkillModel;
 import com.squareup.picasso.Picasso;
-import com.squareup.picasso.Transformation;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Locale;
 
 public class DetailHeroes extends AppCompatActivity {
 
-    // ================= VIEW =================
-    private ImageView IV_Hero;
-    private TextView TV_HeroName, TV_ReleaseYear, TV_Role, TV_Speciality;
-    private TextView TV_HP, TV_Mana, TV_PhysicalAtk, TV_MagicRes, TV_MoveSpeed;
-    private RecyclerView RV_Skills;
-
-    // ================= URL =================
-    private static final String BASE_HERO_URL =
+    private static final String BASE_API =
             "https://raw.githubusercontent.com/rzkyfhrzi21/mlbb-tutorial-api/refs/heads/master/heroes/";
-
-    private static final String HERO_IMAGE =
-            "https://raw.githubusercontent.com/rzkyfhrzi21/mlbb-tutorial-api/9c6d2251a29d5ec6058dbbafd089806b432f9299/assets/heroes/webp/";
-
-    private static final String DEFAULT_HERO_ASSETS =
-            HERO_IMAGE + "default_skill.webp";
-
-    // ================= DATA =================
-    private final ArrayList<SkillModel> skillList = new ArrayList<>();
-    private SkillAdapter skillAdapter;
+    private static final String BASE_ASSET =
+            "https://raw.githubusercontent.com/rzkyfhrzi21/mlbb-tutorial-api/refs/heads/master/assets/";
+    private static final String DEFAULT_SKILL =
+            BASE_ASSET + "skills/default.webp";
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    protected void onCreate(Bundle b) {
+        super.onCreate(b);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_detail_heroes);
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
+        ViewCompat.setOnApplyWindowInsetsListener(
+                findViewById(R.id.main),
+                (v, insets) -> {
+                    Insets i = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+                    v.setPadding(i.left, i.top, i.right, i.bottom);
+                    return insets;
+                });
 
-//        initViews();
-//        setupRecycler();
-        loadHeroData();
+        ImageButton btnBack = findViewById(R.id.btnBack);
+        btnBack.setOnClickListener(v -> finish());
+
+        String heroName = getIntent().getStringExtra("hero_name");
+        if (heroName != null) loadHero(heroName.toLowerCase());
     }
 
-    // ================= INIT VIEW =================
-//    private void initViews() {
-//        IV_Hero = findViewById(R.id.IV_Hero);
-//
-//        TV_HeroName = findViewById(R.id.TV_HeroName);
-//        TV_ReleaseYear = findViewById(R.id.TV_ReleaseYear);
-//        TV_Role = findViewById(R.id.TV_Role);
-//        TV_Speciality = findViewById(R.id.TV_Speciality);
-//
-//        TV_HP = findViewById(R.id.TV_HP);
-//        TV_Mana = findViewById(R.id.TV_Mana);
-//        TV_PhysicalAtk = findViewById(R.id.TV_PhysicalAtk);
-//        TV_MagicRes = findViewById(R.id.TV_MagicRes);
-//        TV_MoveSpeed = findViewById(R.id.TV_MoveSpeed);
-//
-//        RV_Skills = findViewById(R.id.RV_Skills);
-//    }
+    private void loadHero(String hero) {
 
-//    private void setupRecycler() {
-//        skillAdapter = new SkillAdapter(this, skillList);
-//        RV_Skills.setLayoutManager(new LinearLayoutManager(this));
-//        RV_Skills.setAdapter(skillAdapter);
-//    }
+        String url = BASE_API + hero + ".json";
 
-    // ================= LOAD DATA =================
-    private void loadHeroData() {
-
-        String heroUrl = getIntent().getStringExtra("hero_url");
-        if (heroUrl == null) return;
-
-        String HERO_URL = BASE_HERO_URL + heroUrl;
-
-        JsonObjectRequest request = new JsonObjectRequest(
+        JsonObjectRequest req = new JsonObjectRequest(
                 Request.Method.GET,
-                HERO_URL,
+                url,
                 null,
-//                response -> {
-//                    try {
-//                        JSONObject hero = response.getJSONObject("hero");
-//
-//                        // ===== HERO INFO =====
-//                        TV_HeroName.setText(hero.optString("hero_name"));
-//                        TV_ReleaseYear.setText("Release: " + hero.optInt("release_year"));
-//                        TV_Role.setText(joinArray(hero.optJSONArray("role")));
-//                        TV_Speciality.setText(joinArray(hero.optJSONArray("speciality")));
-//
-//                        String heroIcon = hero.optString("hero_icon");
-//                        String heroImageUrl = heroIcon.isEmpty()
-//                                ? DEFAULT_HERO_ASSETS
-//                                : HERO_IMAGE + heroIcon;
-//
-//                        Picasso.get()
-//                                .load(heroImageUrl)
-//                                .transform(new CircleTransform())
-//                                .into(IV_Hero);
-//
-//                        // ===== BASE ATTRIBUTES =====
-//                        JSONObject attr = hero.optJSONObject("base_attributes");
-//                        if (attr != null) {
-//                            TV_HP.setText("HP: " + attr.optInt("hp"));
-//                            TV_Mana.setText("Mana: " + attr.optInt("mana"));
-//                            TV_PhysicalAtk.setText("Physical ATK: " + attr.optInt("physical_attack"));
-//                            TV_MagicRes.setText("Magic RES: " + attr.optInt("magic_resistance"));
-//                            TV_MoveSpeed.setText("Move SPD: " + attr.optInt("movement_speed"));
-//                        }
-//
-//                        // ===== SKILLS =====
-//                        skillList.clear();
-//                        JSONArray skills = hero.optJSONArray("skills");
-//                        if (skills != null) {
-//                            for (int i = 0; i < skills.length(); i++) {
-//                                JSONObject s = skills.getJSONObject(i);
-//
-//                                skillList.add(new SkillModel(
-//                                        s.optString("skill_name"),
-//                                        s.optString("skill_icon"),
-//                                        s.optString("type"),
-//                                        s.optString("description"),
-//                                        joinArrayNumber(s.optJSONArray("cooldown")),
-//                                        joinArrayNumber(s.optJSONArray("manacost")),
-//                                        joinArray(s.optJSONArray("skill_unique"))
-//                                ));
-//                            }
-//                        }
-//
-//                        skillAdapter.notifyDataSetChanged();
-//
-//                    } catch (Exception e) {
-//                        e.printStackTrace();
-//                    }
-//                },
-                response -> {
+                res -> {
                     try {
-                        JSONObject hero = response.getJSONObject("hero");
+                        JSONObject h = res.getJSONObject("hero");
 
-                        // ===== HERO INFO (LOG) =====
-                        String heroName = hero.optString("hero_name", "-");
-                        int releaseYear = hero.optInt("release_year", 0);
-                        String role = joinArray(hero.optJSONArray("role"));
-                        String speciality = joinArray(hero.optJSONArray("speciality"));
-                        String heroIcon = hero.optString("hero_icon", "");
+                        TextView txtName = findViewById(R.id.txtHeroName);
+                        TextView txtRelease = findViewById(R.id.txtReleaseYear);
+                        TextView txtRole = findViewById(R.id.txtRole);
+                        TextView txtSpec = findViewById(R.id.txtSpeciality);
+                        TextView txtLane = findViewById(R.id.txtLaning);
+                        TextView txtPrice = findViewById(R.id.txtPrice);
+                        ImageView imgHero = findViewById(R.id.imgHero);
 
-                        Log.d("HERO_DETAIL", "===== HERO INFO =====");
-                        Log.d("HERO_DETAIL", "Name        : " + heroName);
-                        Log.d("HERO_DETAIL", "Release Year : " + releaseYear);
-                        Log.d("HERO_DETAIL", "Role        : " + role);
-                        Log.d("HERO_DETAIL", "Speciality  : " + speciality);
-                        Log.d("HERO_DETAIL", "Hero Icon   : " + heroIcon);
+                        // ===== TEXT (TITLE CASE) =====
+                        txtName.setText(titleCase(h.optString("hero_name")));
 
-                        // ===== BASE ATTRIBUTES (LOG) =====
-                        JSONObject attr = hero.optJSONObject("base_attributes");
-                        Log.d("HERO_DETAIL", "===== BASE ATTRIBUTES =====");
-                        if (attr != null) {
-                            Log.d("HERO_DETAIL", "HP              : " + attr.optInt("hp"));
-                            Log.d("HERO_DETAIL", "Mana            : " + attr.optInt("mana"));
-                            Log.d("HERO_DETAIL", "Physical Attack : " + attr.optInt("physical_attack"));
-                            Log.d("HERO_DETAIL", "Magic Resistance: " + attr.optInt("magic_resistance"));
-                            Log.d("HERO_DETAIL", "Movement Speed  : " + attr.optInt("movement_speed"));
+                        txtRelease.setText("Released Date: " + h.optInt("release_year", 0));
+                        txtRole.setText("Role: " + titleCase(joinArray(h.optJSONArray("role"))));
+                        txtSpec.setText("Speciality: " + titleCase(joinArray(h.optJSONArray("speciality"))));
+                        txtLane.setText("Laning: " + titleCase(joinArray(h.optJSONArray("laning"))));
+
+                        JSONObject price = h.optJSONObject("price");
+                        if (price != null) {
+                            int bp = price.optInt("battle_point", 0);
+                            int dm = price.optInt("diamond", 0);
+                            txtPrice.setText("Price: BP " + bp + " • Diamond " + dm);
                         } else {
-                            Log.d("HERO_DETAIL", "base_attributes: -");
+                            txtPrice.setText("Price: -");
                         }
 
-                        // ===== SKILLS (LOG) =====
-                        JSONArray skills = hero.optJSONArray("skills");
-                        Log.d("HERO_DETAIL", "===== SKILLS =====");
-                        if (skills != null) {
-                            for (int i = 0; i < skills.length(); i++) {
-                                JSONObject s = skills.getJSONObject(i);
+                        // ===== HERO ICON (TETAP) =====
+                        String heroIcon = h.optString("hero_icon", "").toLowerCase(Locale.ROOT);
+                        String heroIconUrl = heroIcon.isEmpty()
+                                ? BASE_ASSET + "default.webp"
+                                : BASE_ASSET + "heroes/" + heroIcon;
 
-                                String skillName = s.optString("skill_name", "-");
-                                String skillIcon = s.optString("skill_icon", "-");
-                                String type = s.optString("type", "-");
-                                String desc = s.optString("description", "-");
-                                String cooldown = joinArrayNumber(s.optJSONArray("cooldown"));
-                                String manacost = joinArrayNumber(s.optJSONArray("manacost"));
-                                String unique = joinArray(s.optJSONArray("skill_unique"));
+                        Picasso.get()
+                                .load(heroIconUrl)
+                                .resize(240, 240)
+                                .centerInside()
+                                .into(imgHero, new com.squareup.picasso.Callback() {
+                                    @Override public void onSuccess() {}
 
-                                Log.d("HERO_DETAIL", "Skill #" + (i + 1));
-                                Log.d("HERO_DETAIL", "  Name     : " + skillName);
-                                Log.d("HERO_DETAIL", "  Icon     : " + skillIcon);
-                                Log.d("HERO_DETAIL", "  Type     : " + type);
-                                Log.d("HERO_DETAIL", "  Desc     : " + desc);
-                                Log.d("HERO_DETAIL", "  Cooldown : " + cooldown);
-                                Log.d("HERO_DETAIL", "  Mana     : " + manacost);
-                                Log.d("HERO_DETAIL", "  Unique   : " + unique);
-                            }
-                        } else {
-                            Log.d("HERO_DETAIL", "skills: -");
+                                    @Override
+                                    public void onError(Exception e) {
+                                        Picasso.get()
+                                                .load(BASE_ASSET + "default.webp")
+                                                .resize(240, 240)
+                                                .centerInside()
+                                                .into(imgHero);
+                                    }
+                                });
+
+                        // ===== SKILLS (TETAP, JANGAN DIUBAH) =====
+                        ArrayList<HeroSkillModel> skillList = new ArrayList<>();
+                        JSONArray skills = h.getJSONArray("skills");
+
+                        for (int i = 0; i < skills.length(); i++) {
+                            JSONObject s = skills.getJSONObject(i);
+
+                            String icon = s.optString("skill_icon", "");
+                            String iconUrlSkill = icon.isEmpty()
+                                    ? DEFAULT_SKILL
+                                    : BASE_ASSET + "skills/" + icon.toLowerCase();
+
+                            skillList.add(new HeroSkillModel(
+                                    s.optString("skill_name"),
+                                    iconUrlSkill,
+                                    s.optString("type"),
+                                    s.optString("description"),
+                                    toStringList(s.optJSONArray("skill_unique")),
+                                    toIntList(s.optJSONArray("cooldown")),
+                                    toIntList(s.optJSONArray("manacost"))
+                            ));
                         }
 
-                        // (Opsional) log response mentah (JSON full)
-                        // Log.d("HERO_DETAIL_RAW", response.toString());
+                        RecyclerView rvSkill = findViewById(R.id.rvSkills);
+                        rvSkill.setLayoutManager(
+                                new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+                        );
+                        rvSkill.setAdapter(new HeroSkillAdapter(this, skillList));
+
+                        // ===== ATTRIBUTES (TETAP) =====
+                        RecyclerView rvAttr = findViewById(R.id.rvAttributes);
+                        rvAttr.setLayoutManager(new GridLayoutManager(this, 2));
+                        rvAttr.setAdapter(
+                                new HeroAttributeAdapter(h.getJSONObject("base_attributes"))
+                        );
 
                     } catch (Exception e) {
-                        Log.e("HERO_DETAIL", "Parse error: " + e.getMessage(), e);
+                        e.printStackTrace();
                     }
                 },
-
-                error -> error.printStackTrace()
+                Throwable::printStackTrace
         );
 
-        Volley.newRequestQueue(this).add(request);
+        Volley.newRequestQueue(this).add(req);
     }
 
-    // ================= HELPER =================
-    private String joinArray(JSONArray arr) {
-        if (arr == null) return "-";
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < arr.length(); i++) {
-            sb.append(arr.optString(i));
-            if (i < arr.length() - 1) sb.append(", ");
-        }
-        return sb.toString();
+    /* ========================= UTIL ========================= */
+
+    private String joinArray(JSONArray a) {
+        if (a == null) return "-";
+        ArrayList<String> l = new ArrayList<>();
+        for (int i = 0; i < a.length(); i++) l.add(a.optString(i));
+        return android.text.TextUtils.join(" / ", l);
     }
 
-    private String joinArrayNumber(JSONArray arr) {
-        if (arr == null) return "-";
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < arr.length(); i++) {
-            sb.append(arr.optInt(i));
-            if (i < arr.length() - 1) sb.append(", ");
-        }
-        return sb.toString();
+    private ArrayList<String> toStringList(JSONArray a) {
+        ArrayList<String> l = new ArrayList<>();
+        if (a == null) return l;
+        for (int i = 0; i < a.length(); i++) l.add(a.optString(i));
+        return l;
     }
 
-    // ================= CIRCLE IMAGE =================
-    static class CircleTransform implements Transformation {
-        @Override
-        public Bitmap transform(Bitmap source) {
-            int size = Math.min(source.getWidth(), source.getHeight());
-            int x = (source.getWidth() - size) / 2;
-            int y = (source.getHeight() - size) / 2;
+    private ArrayList<Integer> toIntList(JSONArray a) {
+        ArrayList<Integer> l = new ArrayList<>();
+        if (a == null) return l;
+        for (int i = 0; i < a.length(); i++) l.add(a.optInt(i));
+        return l;
+    }
 
-            Bitmap squared = Bitmap.createBitmap(source, x, y, size, size);
-            if (squared != source) source.recycle();
-
-            Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
-            Canvas canvas = new Canvas(bitmap);
-            Paint paint = new Paint();
-            paint.setAntiAlias(true);
-
-            BitmapShader shader = new BitmapShader(squared, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP);
-            paint.setShader(shader);
-
-            float r = size / 2f;
-            canvas.drawCircle(r, r, r, paint);
-
-            squared.recycle();
-            return bitmap;
+    // ===== TITLE CASE HELPER =====
+    private String titleCase(String s) {
+        if (s == null || s.trim().isEmpty()) return "-";
+        String[] p = s.replace("_", " ").split("\\s+");
+        StringBuilder out = new StringBuilder();
+        for (String x : p) {
+            out.append(Character.toUpperCase(x.charAt(0)))
+                    .append(x.substring(1).toLowerCase(Locale.ROOT))
+                    .append(" ");
         }
-
-        @Override
-        public String key() {
-            return "circle";
-        }
+        return out.toString().trim();
     }
 }

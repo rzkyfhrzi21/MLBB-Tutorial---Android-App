@@ -25,24 +25,25 @@ public class MainActivity extends AppCompatActivity {
         });
 
         Button btnHeroes = findViewById(R.id.btnHeroes);
-//        Button btnItems = findViewById(R.id.btnItems);
-//        Button btnEmblems = findViewById(R.id.btnEmblems);
-//        Button btnBattleSpells = findViewById(R.id.btnBattleSpells);
-//        Button btnUpdatePatch = findViewById(R.id.btnUpdatePatch);
+        Button btnItems = findViewById(R.id.btnItems);
+        Button btnEmblems = findViewById(R.id.btnEmblems);
+        Button btnBattleSpells = findViewById(R.id.btnBattleSpells);
+        Button btnTentang = findViewById(R.id.btnTentang);
 
         btnHeroes.setOnClickListener(v ->
                 startActivity(new Intent(this, ListHeroes.class)));
 
-//        btnItems.setOnClickListener(v ->
-//                startActivity(new Intent(this, ListItems.class)));
-//
-//        btnEmblems.setOnClickListener(v ->
-//                startActivity(new Intent(this, ListEmblems.class)));
-//
-//        btnBattleSpells.setOnClickListener(v ->
-//                startActivity(new Intent(this, ListBattleSpells.class)));
-//
-//        btnUpdatePatch.setOnClickListener(v ->
-//                startActivity(new Intent(this, UpdatePatch.class)));
+        btnItems.setOnClickListener(v ->
+                startActivity(new Intent(this, ListItemCategory.class)));
+
+        btnEmblems.setOnClickListener(v ->
+                startActivity(new Intent(this, ListEmblems.class)));
+
+        btnBattleSpells.setOnClickListener(v ->
+                startActivity(new Intent(this, ListBattleSpells.class)));
+
+        // TENTANG
+        btnTentang.setOnClickListener(v ->
+                startActivity(new Intent(this, TentangActivity.class)));
     }
 }

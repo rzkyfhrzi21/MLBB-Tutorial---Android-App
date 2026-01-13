@@ -7,17 +7,20 @@
     android:layout_height="match_parent"
     android:background="@color/black">
 
-    <!-- ===== BACK BUTTON ===== -->
-    <ImageButton
-        android:id="@+id/btnBack"
-        android:layout_width="36dp"
-        android:layout_height="36dp"
-        android:layout_margin="12dp"
-        android:background="@android:color/transparent"
-        android:src="@drawable/ic_arrow_back"
-        app:tint="@color/primary"
+    <!-- ===== TITLE ===== -->
+    <TextView
+        android:id="@+id/txtTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="MLBB Tutorial"
+        android:textColor="@color/primary"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginTop="16dp"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"/>
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
 
     <!-- ===== LOGO CARD ===== -->
     <androidx.cardview.widget.CardView
@@ -30,7 +33,7 @@
         app:cardCornerRadius="18dp"
         app:cardElevation="6dp"
         app:cardBackgroundColor="@color/dark_black"
-        app:layout_constraintTop_toBottomOf="@id/btnBack"
+        app:layout_constraintTop_toBottomOf="@id/txtTitle"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
@@ -44,6 +47,7 @@
 
     <!-- ===== MENU BUTTONS ===== -->
     <LinearLayout
+        android:id="@+id/menuWrapper"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="vertical"
@@ -71,15 +75,28 @@
             style="@style/MenuButton"/>
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnBattleSpells"
-            android:text="BATTLE SPELLS"
+            android:id="@+id/dbtnBattleSpells"
+            android:text="Battle Spell"
             style="@style/MenuButton"/>
 
+        <!-- ===== TENTANG ===== -->
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnUpdatePatch"
-            android:text="UPDATE PATCH"
+            android:id="@+id/btnTentang"
+            android:text="Tentang"
             style="@style/MenuButton"/>
-
     </LinearLayout>
+
+    <!-- ===== COPYRIGHT ===== -->
+    <TextView
+        android:id="@+id/txtCopyright"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="© 2026 MLBB Tutorial"
+        android:textColor="#888888"
+        android:textSize="12sp"
+        android:layout_marginBottom="12dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

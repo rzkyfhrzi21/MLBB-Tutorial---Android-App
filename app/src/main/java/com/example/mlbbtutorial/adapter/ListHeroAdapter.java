@@ -5,10 +5,8 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapShader;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Shader;
-import android.graphics.drawable.GradientDrawable;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -29,19 +27,19 @@ import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Transformation;
 
 import java.util.List;
+import java.util.Locale;
 
 public class ListHeroAdapter extends RecyclerView.Adapter<ListHeroAdapter.HeroViewHolder> {
 
     private final Context context;
     private final List<ListHeroModel> heroList;
 
-    // BASE URL (RAW GitHub, assets/heroes/)
+    // ✅ PATH BENAR (webp)
     private static final String BASE_URL =
-            "https://raw.githubusercontent.com/rzkyfhrzi21/mlbb-tutorial-api/9c6d2251a29d5ec6058dbbafd089806b432f9299/assets/heroes/webp/";
+            "https://raw.githubusercontent.com/rzkyfhrzi21/mlbb-tutorial-api/refs/heads/master/assets/heroes/";
 
-    // DEFAULT IMAGE
     private static final String DEFAULT_IMAGE =
-            BASE_URL + "default_skill.webp";
+            BASE_URL + "default.webp";
 
     public ListHeroAdapter(Context context, List<ListHeroModel> heroList) {
         this.context = context;
@@ -53,104 +51,73 @@ public class ListHeroAdapter extends RecyclerView.Adapter<ListHeroAdapter.HeroVi
     public HeroViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
 
         CardView card = new CardView(context);
-        RecyclerView.LayoutParams cardParams = new RecyclerView.LayoutParams(
+        RecyclerView.LayoutParams params = new RecyclerView.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
         );
-        int margin = dp(6);
-        cardParams.setMargins(margin, margin, margin, margin);
-        card.setLayoutParams(cardParams);
+        int m = dp(6);
+        params.setMargins(m, m, m, m);
+        card.setLayoutParams(params);
         card.setRadius(dp(12));
-        card.setCardElevation(dp(2));
-        card.setCardBackgroundColor(Color.parseColor("#121212"));
+        card.setCardBackgroundColor(0xFF121212);
 
-        LinearLayout container = new LinearLayout(context);
-        container.setOrientation(LinearLayout.VERTICAL);
-        container.setGravity(Gravity.CENTER);
-        container.setPadding(dp(10), dp(10), dp(10), dp(10));
-        card.addView(container);
+        LinearLayout box = new LinearLayout(context);
+        box.setOrientation(LinearLayout.VERTICAL);
+        box.setGravity(Gravity.CENTER);
+        box.setPadding(dp(8), dp(8), dp(8), dp(8));
+        card.addView(box);
 
-        FrameLayout frame = new FrameLayout(context);
-        frame.setLayoutParams(new FrameLayout.LayoutParams(dp(76), dp(76)));
+        ImageView icon = new ImageView(context);
+        icon.setLayoutParams(new FrameLayout.LayoutParams(dp(72), dp(72)));
+        icon.setScaleType(ImageView.ScaleType.CENTER_CROP);
 
-        GradientDrawable ring = new GradientDrawable();
-        ring.setShape(GradientDrawable.OVAL);
-        ring.setColor(Color.TRANSPARENT);
-        ring.setStroke(dp(2), Color.parseColor("#64FFDA"));
-        frame.setBackground(ring);
-        frame.setPadding(dp(3), dp(3), dp(3), dp(3));
+        TextView name = new TextView(context);
+        name.setTextColor(0xFFFFFFFF);
+        name.setTextSize(12);
+        name.setGravity(Gravity.CENTER);
+        name.setPadding(0, dp(6), 0, 0);
 
-        ImageView imgHero = new ImageView(context);
-        imgHero.setLayoutParams(new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-        ));
-        imgHero.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        frame.addView(imgHero);
+        box.addView(icon);
+        box.addView(name);
 
-        TextView txtName = new TextView(context);
-        LinearLayout.LayoutParams txtParams = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-        );
-        txtParams.topMargin = dp(8);
-        txtName.setLayoutParams(txtParams);
-        txtName.setTextColor(Color.WHITE);
-        txtName.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
-        txtName.setGravity(Gravity.CENTER);
-
-        container.addView(frame);
-        container.addView(txtName);
-
-        return new HeroViewHolder(card, imgHero, txtName);
+        return new HeroViewHolder(card, icon, name);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull HeroViewHolder holder, int position) {
-        ListHeroModel hero = heroList.get(position);
-        String heroName = hero.getHeroName();
-        String heroUrl = hero.getHeroUrl();
+    public void onBindViewHolder(@NonNull HeroViewHolder h, int pos) {
 
-        holder.txtName.setText(hero.getHeroName());
+        ListHeroModel hero = heroList.get(pos);
 
-        String heroIcon = hero.getHeroIcon();
+        h.txtName.setText(hero.getHeroName());
 
-        // 👉 Set tag CardView = CV_(nama_hero)
-        String safeHeroName = heroName.replace(" ", "_");
-        holder.itemView.setTag("CV_" + safeHeroName);
-        holder.itemView.setOnClickListener(v -> {
-            Intent intent = new Intent(context, DetailHeroes.class);
+        String heroIcon = hero.getHeroIcon() == null
+                ? ""
+                : hero.getHeroIcon().toLowerCase(Locale.ROOT);
 
-            // Kirim extra (nilai nama hero)
-            intent.putExtra("hero_name", heroName);
-            intent.putExtra("hero_url", heroUrl);
+        String imgUrl = heroIcon.isEmpty()
+                ? DEFAULT_IMAGE
+                : BASE_URL + heroIcon;
 
-            context.startActivity(intent);
-        });
-
-        String imageUrl = (heroIcon != null && !heroIcon.trim().isEmpty())
-                ? BASE_URL + heroIcon.trim()
-                : DEFAULT_IMAGE;
-
-        // LOAD IMAGE DENGAN CALLBACK FALLBACK
         Picasso.get()
-                .load(imageUrl)
+                .load(imgUrl)
                 .transform(new CircleTransform())
-                .into(holder.imgHero, new Callback() {
-                    @Override
-                    public void onSuccess() {
-                        // gambar hero berhasil dimuat
-                    }
+                .into(h.imgHero, new Callback() {
+                    @Override public void onSuccess() {}
 
                     @Override
                     public void onError(Exception e) {
-                        // ❗ fallback ke default image (URL)
                         Picasso.get()
                                 .load(DEFAULT_IMAGE)
                                 .transform(new CircleTransform())
-                                .into(holder.imgHero);
+                                .into(h.imgHero);
                     }
                 });
+
+        h.itemView.setOnClickListener(v -> {
+            Intent i = new Intent(context, DetailHeroes.class);
+            i.putExtra("hero_name", hero.getHeroName().toLowerCase(Locale.ROOT));
+            context.startActivity(i);
+        });
     }
 
     @Override
@@ -162,48 +129,41 @@ public class ListHeroAdapter extends RecyclerView.Adapter<ListHeroAdapter.HeroVi
         ImageView imgHero;
         TextView txtName;
 
-        HeroViewHolder(@NonNull View itemView, ImageView imgHero, TextView txtName) {
-            super(itemView);
-            this.imgHero = imgHero;
-            this.txtName = txtName;
+        HeroViewHolder(View v, ImageView i, TextView n) {
+            super(v);
+            imgHero = i;
+            txtName = n;
         }
     }
 
-    private int dp(int value) {
+    private int dp(int v) {
         return (int) TypedValue.applyDimension(
                 TypedValue.COMPLEX_UNIT_DIP,
-                value,
+                v,
                 context.getResources().getDisplayMetrics()
         );
     }
 
-    // ===== Circle Transform (pengganti Glide.circleCrop) =====
+    // ✅ ROUND ICON
     static class CircleTransform implements Transformation {
-
         @Override
-        public Bitmap transform(Bitmap source) {
-            int size = Math.min(source.getWidth(), source.getHeight());
-            int x = (source.getWidth() - size) / 2;
-            int y = (source.getHeight() - size) / 2;
+        public Bitmap transform(Bitmap src) {
+            int size = Math.min(src.getWidth(), src.getHeight());
+            int x = (src.getWidth() - size) / 2;
+            int y = (src.getHeight() - size) / 2;
 
-            Bitmap squared = Bitmap.createBitmap(source, x, y, size, size);
-            if (squared != source) source.recycle();
+            Bitmap squared = Bitmap.createBitmap(src, x, y, size, size);
+            if (squared != src) src.recycle();
 
-            Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
-
-            Canvas canvas = new Canvas(bitmap);
-            Paint paint = new Paint();
-            paint.setAntiAlias(true);
-
-            BitmapShader shader =
-                    new BitmapShader(squared, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP);
-            paint.setShader(shader);
-
-            float r = size / 2f;
-            canvas.drawCircle(r, r, r, paint);
+            Bitmap out = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+            Canvas c = new Canvas(out);
+            Paint p = new Paint();
+            p.setAntiAlias(true);
+            p.setShader(new BitmapShader(squared, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP));
+            c.drawCircle(size / 2f, size / 2f, size / 2f, p);
 
             squared.recycle();
-            return bitmap;
+            return out;
         }
 
         @Override
