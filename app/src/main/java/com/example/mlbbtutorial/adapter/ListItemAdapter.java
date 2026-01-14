@@ -2,6 +2,7 @@ package com.example.mlbbtutorial.adapter;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -14,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.mlbbtutorial.DetailItemDialog;
+import com.example.mlbbtutorial.R;
 import com.example.mlbbtutorial.model.ListItemModel;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
@@ -23,11 +25,14 @@ import java.util.ArrayList;
 public class ListItemAdapter
         extends RecyclerView.Adapter<ListItemAdapter.Holder> {
 
+    private static final String TAG = "ITEM_ADAPTER";
+
     private final Context ctx;
     private final ArrayList<ListItemModel> data;
 
     private static final String BASE_REPO =
             "https://raw.githubusercontent.com/rzkyfhrzi21/mlbb-tutorial-api/refs/heads/master";
+
     private static final String DEFAULT_ICON =
             "https://raw.githubusercontent.com/rzkyfhrzi21/mlbb-tutorial-api/refs/heads/master/assets/items/default.webp";
 
@@ -39,7 +44,6 @@ public class ListItemAdapter
     @Override
     public Holder onCreateViewHolder(ViewGroup parent, int viewType) {
 
-        // ROOT ITEM (VERTIKAL)
         LinearLayout root = new LinearLayout(ctx);
         root.setOrientation(LinearLayout.HORIZONTAL);
         root.setPadding(dp(12), dp(12), dp(12), dp(12));
@@ -52,29 +56,19 @@ public class ListItemAdapter
         rp.setMargins(dp(8), dp(6), dp(8), dp(6));
         root.setLayoutParams(rp);
 
-        // ICON
         ImageView icon = new ImageView(ctx);
-        LinearLayout.LayoutParams ip =
-                new LinearLayout.LayoutParams(dp(52), dp(52));
-        icon.setLayoutParams(ip);
+        icon.setLayoutParams(new LinearLayout.LayoutParams(dp(52), dp(52)));
         icon.setScaleType(ImageView.ScaleType.CENTER_CROP);
 
-        // TEXT WRAPPER
         LinearLayout textBox = new LinearLayout(ctx);
         textBox.setOrientation(LinearLayout.VERTICAL);
         textBox.setPadding(dp(12), 0, 0, 0);
-        textBox.setLayoutParams(new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-        ));
 
-        // NAME
         TextView name = new TextView(ctx);
         name.setTextColor(Color.WHITE);
         name.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         name.setTypeface(null, android.graphics.Typeface.BOLD);
 
-        // ATTR
         TextView attr = new TextView(ctx);
         attr.setTextColor(Color.parseColor("#B0B0B0"));
         attr.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
@@ -95,7 +89,7 @@ public class ListItemAdapter
 
         h.name.setText(m.name);
 
-        // ATTRIBUTE ARRAY → MULTI LINE
+        // ATTRIBUTE
         if (m.attributes != null && !m.attributes.isEmpty()) {
             StringBuilder sb = new StringBuilder();
             for (String s : m.attributes) {
@@ -106,20 +100,45 @@ public class ListItemAdapter
             h.attr.setText("-");
         }
 
-        // ICON (AMAN, TANPA error())
-        String iconUrl =
-                (m.icon != null && !m.icon.trim().isEmpty())
-                        ? BASE_REPO + m.icon
-                        : DEFAULT_ICON;
+        // ===============================
+        // ICON URL FINAL + DEBUG LOG
+        // ===============================
+        String iconUrl;
 
-        Picasso.get().load(iconUrl).into(h.icon, new Callback() {
-            @Override public void onSuccess() {}
-            @Override public void onError(Exception e) {
-                Picasso.get().load(DEFAULT_ICON).into(h.icon);
-            }
-        });
+        if (m.icon != null && !m.icon.trim().isEmpty()) {
+            iconUrl = BASE_REPO + "/assets/items/" + m.icon.trim();
+        } else {
+            iconUrl = DEFAULT_ICON;
+        }
 
-        // CLICK → DETAIL DIALOG
+        Log.d(TAG, "------------------------------");
+        Log.d(TAG, "Item Name : " + m.name);
+        Log.d(TAG, "Icon JSON : " + m.icon);
+        Log.d(TAG, "Final URL : " + iconUrl);
+
+        Picasso.get()
+                .load(iconUrl)
+                .into(h.icon, new Callback() {
+                    @Override
+                    public void onSuccess() {
+                        Log.d(TAG, "ICON LOAD SUCCESS : " + m.name);
+                    }
+
+                    @Override
+                    public void onError(Exception e) {
+                        Log.e(TAG, "ICON LOAD FAILED : " + m.name);
+                        Log.e(TAG, "REASON : " + e.getMessage());
+
+                        Picasso.get().
+                                load(R.drawable.default_icon).
+                                into(h.icon);
+
+
+                        Log.d(TAG, "FALLBACK DEFAULT ICON USED");
+                    }
+                });
+
+        // CLICK → DETAIL
         h.itemView.setOnClickListener(v ->
                 DetailItemDialog
                         .newInstance(m)
@@ -136,8 +155,6 @@ public class ListItemAdapter
         return data.size();
     }
 
-    /* ========================= HOLDER ========================= */
-
     static class Holder extends RecyclerView.ViewHolder {
         ImageView icon;
         TextView name, attr;
@@ -149,8 +166,6 @@ public class ListItemAdapter
             attr = a;
         }
     }
-
-    /* ========================= UTIL ========================= */
 
     private int dp(int v) {
         return (int) TypedValue.applyDimension(

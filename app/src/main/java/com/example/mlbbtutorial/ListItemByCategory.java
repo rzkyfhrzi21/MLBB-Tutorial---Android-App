@@ -1,6 +1,7 @@
 package com.example.mlbbtutorial;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
@@ -27,13 +28,15 @@ import java.util.Locale;
 
 public class ListItemByCategory extends AppCompatActivity {
 
+    private static final String TAG = "ITEM_DEBUG";
+
+    // ✅ FIX: JSON item ada di folder /items/
     private static final String BASE_API =
             "https://raw.githubusercontent.com/rzkyfhrzi21/mlbb-tutorial-api/refs/heads/master/items/";
 
     private RecyclerView rv;
     private ListItemAdapter adapter;
 
-    // MASTER + VIEW
     private final ArrayList<ListItemModel> items = new ArrayList<>();
     private final ArrayList<ListItemModel> filtered = new ArrayList<>();
 
@@ -53,9 +56,15 @@ public class ListItemByCategory extends AppCompatActivity {
         });
 
         String category = getIntent().getStringExtra("item_category");
-        if (category == null) category = "";
+        if (category == null || category.trim().isEmpty()) {
+            category = "attack"; // default aman
+            Log.w(TAG, "item_category kosong -> default: " + category);
+        }
 
-        // TITLE KAPITAL (Attack Items)
+        // bersihkan category biar cocok nama file: attack.json, defense.json, dll
+        category = category.toLowerCase(Locale.ROOT).trim().replace(" ", "").replace("_", "");
+
+        // Title tampilan
         TextView title = findViewById(R.id.txtTitle);
         title.setText(toTitleCase(category) + " Items");
 
@@ -68,34 +77,28 @@ public class ListItemByCategory extends AppCompatActivity {
         adapter = new ListItemAdapter(this, filtered);
         rv.setAdapter(adapter);
 
-        // SEARCHVIEW (SAMA FEEL BATTLE SPELL)
+        // SEARCH
         searchItem = findViewById(R.id.searchItem);
-
-        searchItem.setIconifiedByDefault(false);     // langsung bisa ketik
-        searchItem.setFocusable(true);
-        searchItem.setFocusableInTouchMode(true);
+        searchItem.setIconifiedByDefault(false);
         searchItem.setQueryHint("Search Item...");
-//        searchItem.requestFocus();
-
         searchItem.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
+            @Override public boolean onQueryTextSubmit(String query) {
                 filter(query);
                 return true;
             }
 
-            @Override
-            public boolean onQueryTextChange(String newText) {
+            @Override public boolean onQueryTextChange(String newText) {
                 filter(newText);
                 return true;
             }
         });
 
-        loadItems(category.toLowerCase(Locale.ROOT));
+        loadItems(category);
     }
 
     private void loadItems(String category) {
         String url = BASE_API + category + ".json";
+        Log.e(TAG, "REQUEST URL = " + url);
 
         JsonObjectRequest req = new JsonObjectRequest(
                 Request.Method.GET,
@@ -104,11 +107,16 @@ public class ListItemByCategory extends AppCompatActivity {
                 res -> {
                     try {
                         JSONArray data = res.getJSONArray("data");
+
                         items.clear();
+                        filtered.clear();
+
+                        Log.e(TAG, "TOTAL ITEM = " + data.length());
 
                         for (int i = 0; i < data.length(); i++) {
                             JSONObject o = data.getJSONObject(i);
-                            items.add(new ListItemModel(
+
+                            ListItemModel m = new ListItemModel(
                                     o.optString("name"),
                                     o.optString("icon"),
                                     o.optInt("price"),
@@ -116,18 +124,28 @@ public class ListItemByCategory extends AppCompatActivity {
                                     toStringList(o.optJSONArray("attribute")),
                                     toEffectList(o.optJSONArray("unique_passive")),
                                     toEffectList(o.optJSONArray("unique_active"))
-                            ));
+                            );
+
+                            items.add(m);
+
+                            Log.e(TAG, "ITEM[" + i + "] " + m.name + " | icon=" + m.icon);
                         }
 
-                        filtered.clear();
                         filtered.addAll(items);
                         adapter.notifyDataSetChanged();
 
+                        Log.e(TAG, "ADAPTER COUNT = " + adapter.getItemCount());
+
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        Log.e(TAG, "PARSE ERROR", e);
                     }
                 },
-                Throwable::printStackTrace
+                err -> {
+                    Log.e(TAG, "REQUEST ERROR", err);
+                    if (err.networkResponse != null) {
+                        Log.e(TAG, "STATUS CODE = " + err.networkResponse.statusCode);
+                    }
+                }
         );
 
         Volley.newRequestQueue(this).add(req);
@@ -176,7 +194,6 @@ public class ListItemByCategory extends AppCompatActivity {
         return list;
     }
 
-    // "attack" -> "Attack" , "magic power" -> "Magic Power"
     private String toTitleCase(String input) {
         if (input == null) return "";
         String s = input.trim().replace("_", " ");

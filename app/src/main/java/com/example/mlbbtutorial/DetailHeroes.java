@@ -34,8 +34,6 @@ public class DetailHeroes extends AppCompatActivity {
             "https://raw.githubusercontent.com/rzkyfhrzi21/mlbb-tutorial-api/refs/heads/master/heroes/";
     private static final String BASE_ASSET =
             "https://raw.githubusercontent.com/rzkyfhrzi21/mlbb-tutorial-api/refs/heads/master/assets/";
-    private static final String DEFAULT_SKILL =
-            BASE_ASSET + "skills/default.webp";
 
     @Override
     protected void onCreate(Bundle b) {
@@ -55,7 +53,7 @@ public class DetailHeroes extends AppCompatActivity {
         btnBack.setOnClickListener(v -> finish());
 
         String heroName = getIntent().getStringExtra("hero_name");
-        if (heroName != null) loadHero(heroName.toLowerCase());
+        if (heroName != null) loadHero(heroName.toLowerCase(Locale.ROOT));
     }
 
     private void loadHero(String hero) {
@@ -78,9 +76,8 @@ public class DetailHeroes extends AppCompatActivity {
                         TextView txtPrice = findViewById(R.id.txtPrice);
                         ImageView imgHero = findViewById(R.id.imgHero);
 
-                        // ===== TEXT (TITLE CASE) =====
+                        // ===== TEXT =====
                         txtName.setText(titleCase(h.optString("hero_name")));
-
                         txtRelease.setText("Released Date: " + h.optInt("release_year", 0));
                         txtRole.setText("Role: " + titleCase(joinArray(h.optJSONArray("role"))));
                         txtSpec.setText("Speciality: " + titleCase(joinArray(h.optJSONArray("speciality"))));
@@ -88,47 +85,39 @@ public class DetailHeroes extends AppCompatActivity {
 
                         JSONObject price = h.optJSONObject("price");
                         if (price != null) {
-                            int bp = price.optInt("battle_point", 0);
-                            int dm = price.optInt("diamond", 0);
-                            txtPrice.setText("Price: BP " + bp + " • Diamond " + dm);
+                            txtPrice.setText(
+                                    "Price: BP " + price.optInt("battle_point", 0) +
+                                            " • Diamond " + price.optInt("diamond", 0)
+                            );
                         } else {
                             txtPrice.setText("Price: -");
                         }
 
-                        // ===== HERO ICON (TETAP) =====
-                        String heroIcon = h.optString("hero_icon", "").toLowerCase(Locale.ROOT);
+                        // ===== HERO ICON (FIXED) =====
+                        String heroIcon = h.optString("hero_icon", "").trim();
                         String heroIconUrl = heroIcon.isEmpty()
-                                ? BASE_ASSET + "default.webp"
-                                : BASE_ASSET + "heroes/" + heroIcon;
+                                ? null
+                                : BASE_ASSET + "heroes/" + heroIcon.toLowerCase(Locale.ROOT);
 
                         Picasso.get()
                                 .load(heroIconUrl)
                                 .resize(240, 240)
                                 .centerInside()
-                                .into(imgHero, new com.squareup.picasso.Callback() {
-                                    @Override public void onSuccess() {}
+                                .placeholder(R.drawable.default_icon)
+                                .error(R.drawable.default_icon)
+                                .into(imgHero);
 
-                                    @Override
-                                    public void onError(Exception e) {
-                                        Picasso.get()
-                                                .load(BASE_ASSET + "default.webp")
-                                                .resize(240, 240)
-                                                .centerInside()
-                                                .into(imgHero);
-                                    }
-                                });
-
-                        // ===== SKILLS (TETAP, JANGAN DIUBAH) =====
+                        // ===== SKILLS =====
                         ArrayList<HeroSkillModel> skillList = new ArrayList<>();
                         JSONArray skills = h.getJSONArray("skills");
 
                         for (int i = 0; i < skills.length(); i++) {
                             JSONObject s = skills.getJSONObject(i);
 
-                            String icon = s.optString("skill_icon", "");
+                            String icon = s.optString("skill_icon", "").trim();
                             String iconUrlSkill = icon.isEmpty()
-                                    ? DEFAULT_SKILL
-                                    : BASE_ASSET + "skills/" + icon.toLowerCase();
+                                    ? null
+                                    : BASE_ASSET + "skills/" + icon.toLowerCase(Locale.ROOT);
 
                             skillList.add(new HeroSkillModel(
                                     s.optString("skill_name"),
@@ -147,7 +136,7 @@ public class DetailHeroes extends AppCompatActivity {
                         );
                         rvSkill.setAdapter(new HeroSkillAdapter(this, skillList));
 
-                        // ===== ATTRIBUTES (TETAP) =====
+                        // ===== ATTRIBUTES =====
                         RecyclerView rvAttr = findViewById(R.id.rvAttributes);
                         rvAttr.setLayoutManager(new GridLayoutManager(this, 2));
                         rvAttr.setAdapter(
@@ -164,7 +153,7 @@ public class DetailHeroes extends AppCompatActivity {
         Volley.newRequestQueue(this).add(req);
     }
 
-    /* ========================= UTIL ========================= */
+    /* ================= UTIL ================= */
 
     private String joinArray(JSONArray a) {
         if (a == null) return "-";
@@ -187,7 +176,6 @@ public class DetailHeroes extends AppCompatActivity {
         return l;
     }
 
-    // ===== TITLE CASE HELPER =====
     private String titleCase(String s) {
         if (s == null || s.trim().isEmpty()) return "-";
         String[] p = s.replace("_", " ").split("\\s+");

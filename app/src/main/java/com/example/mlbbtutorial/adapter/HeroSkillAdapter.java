@@ -14,8 +14,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.mlbbtutorial.DetailSkillDialog;
+import com.example.mlbbtutorial.R;
 import com.example.mlbbtutorial.model.HeroSkillModel;
-import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -26,10 +26,6 @@ public class HeroSkillAdapter
 
     private final Context ctx;
     private final ArrayList<HeroSkillModel> data;
-
-    // DEFAULT ICON (AMAN)
-    private static final String DEFAULT_SKILL =
-            "https://raw.githubusercontent.com/rzkyfhrzi21/mlbb-tutorial-api/refs/heads/master/assets/skills/default.webp";
 
     public HeroSkillAdapter(Context ctx, ArrayList<HeroSkillModel> data) {
         this.ctx = ctx;
@@ -54,13 +50,11 @@ public class HeroSkillAdapter
 
         /* ================= ICON ================= */
         ImageView icon = new ImageView(ctx);
-
         LinearLayout.LayoutParams ip =
                 new LinearLayout.LayoutParams(dp(56), dp(56));
         ip.gravity = Gravity.CENTER_HORIZONTAL;
         icon.setLayoutParams(ip);
 
-        // ⚠️ PENTING UNTUK ICON TRANSPARAN
         icon.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
         icon.setBackgroundColor(Color.TRANSPARENT);
 
@@ -82,34 +76,25 @@ public class HeroSkillAdapter
 
         HeroSkillModel s = data.get(pos);
 
-        // ===== NAME (TITLE CASE) =====
+        // ===== NAME =====
         h.name.setText(toTitleCase(s.getName()));
 
         // ===== ICON URL =====
         String iconUrl = s.getIconUrl();
-        if (iconUrl == null || iconUrl.trim().isEmpty()) {
-            iconUrl = DEFAULT_SKILL;
+        if (iconUrl != null && iconUrl.trim().isEmpty()) {
+            iconUrl = null;
         }
 
-        // ===== LOAD ICON (AMAN & KELIHATAN) =====
+        // ===== LOAD ICON (FINAL & AMAN) =====
         Picasso.get()
                 .load(iconUrl)
-                .resize(dp(56), dp(56))     // WAJIB
-                .centerInside()             // WAJIB
-                .into(h.icon, new Callback() {
-                    @Override public void onSuccess() {}
+                .resize(dp(56), dp(56))
+                .centerInside()
+                .placeholder(R.drawable.default_icon) // tampil saat loading
+                .error(R.drawable.default_icon)       // fallback jika gagal
+                .into(h.icon);
 
-                    @Override
-                    public void onError(Exception e) {
-                        Picasso.get()
-                                .load(DEFAULT_SKILL)
-                                .resize(dp(56), dp(56))
-                                .centerInside()
-                                .into(h.icon);
-                    }
-                });
-
-        // ===== CLICK → DETAIL DIALOG =====
+        // ===== CLICK → DETAIL =====
         h.itemView.setOnClickListener(v ->
                 DetailSkillDialog
                         .newInstance(s)

@@ -27,7 +27,7 @@ import java.util.ArrayList;
 public class DetailItemDialog extends DialogFragment {
 
     private static final String BASE_REPO =
-            "https://raw.githubusercontent.com/rzkyfhrzi21/mlbb-tutorial-api/refs/heads/master";
+            "https://raw.githubusercontent.com/rzkyfhrzi21/mlbb-tutorial-api/refs/heads/master/assets/items/";
 
     private static final String DEFAULT_ICON =
             "https://raw.githubusercontent.com/rzkyfhrzi21/mlbb-tutorial-api/refs/heads/master/assets/items/default.webp";

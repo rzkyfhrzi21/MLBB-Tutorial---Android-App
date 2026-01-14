@@ -75,7 +75,7 @@
             style="@style/MenuButton"/>
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/dbtnBattleSpells"
+            android:id="@+id/btnBattleSpells"
             android:text="Battle Spell"
             style="@style/MenuButton"/>
 

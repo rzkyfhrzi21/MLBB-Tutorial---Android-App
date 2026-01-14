@@ -21,8 +21,8 @@ import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.mlbbtutorial.DetailHeroes;
+import com.example.mlbbtutorial.R;
 import com.example.mlbbtutorial.model.ListHeroModel;
-import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Transformation;
 
@@ -34,12 +34,9 @@ public class ListHeroAdapter extends RecyclerView.Adapter<ListHeroAdapter.HeroVi
     private final Context context;
     private final List<ListHeroModel> heroList;
 
-    // ✅ PATH BENAR (webp)
+    // BASE URL HERO ICON
     private static final String BASE_URL =
             "https://raw.githubusercontent.com/rzkyfhrzi21/mlbb-tutorial-api/refs/heads/master/assets/heroes/";
-
-    private static final String DEFAULT_IMAGE =
-            BASE_URL + "default.webp";
 
     public ListHeroAdapter(Context context, List<ListHeroModel> heroList) {
         this.context = context;
@@ -87,7 +84,6 @@ public class ListHeroAdapter extends RecyclerView.Adapter<ListHeroAdapter.HeroVi
     public void onBindViewHolder(@NonNull HeroViewHolder h, int pos) {
 
         ListHeroModel hero = heroList.get(pos);
-
         h.txtName.setText(hero.getHeroName());
 
         String heroIcon = hero.getHeroIcon() == null
@@ -95,23 +91,16 @@ public class ListHeroAdapter extends RecyclerView.Adapter<ListHeroAdapter.HeroVi
                 : hero.getHeroIcon().toLowerCase(Locale.ROOT);
 
         String imgUrl = heroIcon.isEmpty()
-                ? DEFAULT_IMAGE
+                ? null
                 : BASE_URL + heroIcon;
 
+        // ✅ FALLBACK KE DRAWABLE LOKAL
         Picasso.get()
                 .load(imgUrl)
+                .placeholder(R.drawable.default_icon)
+                .error(R.drawable.default_icon)
                 .transform(new CircleTransform())
-                .into(h.imgHero, new Callback() {
-                    @Override public void onSuccess() {}
-
-                    @Override
-                    public void onError(Exception e) {
-                        Picasso.get()
-                                .load(DEFAULT_IMAGE)
-                                .transform(new CircleTransform())
-                                .into(h.imgHero);
-                    }
-                });
+                .into(h.imgHero);
 
         h.itemView.setOnClickListener(v -> {
             Intent i = new Intent(context, DetailHeroes.class);
@@ -144,7 +133,7 @@ public class ListHeroAdapter extends RecyclerView.Adapter<ListHeroAdapter.HeroVi
         );
     }
 
-    // ✅ ROUND ICON
+    // ROUND ICON
     static class CircleTransform implements Transformation {
         @Override
         public Bitmap transform(Bitmap src) {

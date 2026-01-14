@@ -29,7 +29,7 @@ public class ListItemCategory extends AppCompatActivity {
     private final List<String> categoryList = new ArrayList<>();
 
     private static final String CATEGORY_API =
-            "https://raw.githubusercontent.com/rzkyfhrzi21/mlbb-tutorial-api/refs/heads/master/items/list_category.json";
+            "https://raw.githubusercontent.com/rzkyfhrzi21/mlbb-tutorial-api/refs/heads/master/list_category.json";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

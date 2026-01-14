@@ -18,8 +18,8 @@ import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.mlbbtutorial.DetailEmblemDialog;
+import com.example.mlbbtutorial.R;
 import com.example.mlbbtutorial.model.ListEmblemModel;
-import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -28,7 +28,7 @@ import java.util.List;
 public class ListEmblemSectionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     public static class Row {
-        public final int type; // 0 header, 1 item
+        public final int type;
         public final String title;
         public final ListEmblemModel emblem;
 
@@ -38,13 +38,8 @@ public class ListEmblemSectionAdapter extends RecyclerView.Adapter<RecyclerView.
             this.emblem = emblem;
         }
 
-        public static Row header(String title) {
-            return new Row(0, title, null);
-        }
-
-        public static Row item(ListEmblemModel emblem) {
-            return new Row(1, null, emblem);
-        }
+        public static Row header(String title) { return new Row(0, title, null); }
+        public static Row item(ListEmblemModel emblem) { return new Row(1, null, emblem); }
     }
 
     private static final int TYPE_HEADER = 0;
@@ -53,12 +48,9 @@ public class ListEmblemSectionAdapter extends RecyclerView.Adapter<RecyclerView.
     private final Context context;
     private final List<Row> rows;
 
-    // ICON BASE dari path JSON: "/assets/emblems/...."
-    private static final String BASE_REPO =
-            "https://raw.githubusercontent.com/rzkyfhrzi21/mlbb-tutorial-api/refs/heads/master";
-
-    private static final String DEFAULT_ICON =
-            "https://raw.githubusercontent.com/rzkyfhrzi21/mlbb-tutorial-api/refs/heads/master/assets/items/default.webp";
+    // ✅ base RAW folder emblems
+    private static final String BASE_ICON =
+            "https://raw.githubusercontent.com/rzkyfhrzi21/mlbb-tutorial-api/refs/heads/master/assets/emblems/";
 
     public ListEmblemSectionAdapter(Context context, List<Row> rows) {
         this.context = context;
@@ -89,7 +81,6 @@ public class ListEmblemSectionAdapter extends RecyclerView.Adapter<RecyclerView.
             return new HeaderVH(tv);
         }
 
-        // ITEM
         CardView card = new CardView(context);
         RecyclerView.LayoutParams params = new RecyclerView.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -114,11 +105,7 @@ public class ListEmblemSectionAdapter extends RecyclerView.Adapter<RecyclerView.
 
         LinearLayout textBox = new LinearLayout(context);
         textBox.setOrientation(LinearLayout.VERTICAL);
-        LinearLayout.LayoutParams tp = new LinearLayout.LayoutParams(
-                0,
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                1f
-        );
+        LinearLayout.LayoutParams tp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
         tp.leftMargin = dp(12);
         textBox.setLayoutParams(tp);
 
@@ -133,13 +120,7 @@ public class ListEmblemSectionAdapter extends RecyclerView.Adapter<RecyclerView.
         textBox.addView(txtName);
         textBox.addView(txtSub);
 
-        // BADGE SECTION (kanan)
         TextView badge = new TextView(context);
-        FrameLayout.LayoutParams bp = new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-        );
-        badge.setLayoutParams(bp);
         badge.setTextColor(Color.parseColor("#0B0B0B"));
         badge.setTextSize(11);
         badge.setPadding(dp(10), dp(4), dp(10), dp(4));
@@ -171,14 +152,12 @@ public class ListEmblemSectionAdapter extends RecyclerView.Adapter<RecyclerView.
 
         h.txtName.setText(e.getName());
 
-        // subtext + badge
         if ("main".equals(e.getKind())) {
             ArrayList<String> attrs = e.getAttributes();
             String sub = (attrs != null && attrs.size() > 0)
                     ? attrs.get(0) + (attrs.size() > 1 ? " • " + attrs.get(1) : "")
                     : "Main Emblem";
             h.txtSub.setText(sub);
-
             h.badge.setVisibility(View.GONE);
         } else {
             String sub = "Section " + e.getSection();
@@ -186,26 +165,22 @@ public class ListEmblemSectionAdapter extends RecyclerView.Adapter<RecyclerView.
                 sub = sub + " • " + e.getBenefits();
             }
             h.txtSub.setText(sub);
-
-            // Badge S1 / S2 / S3
-            int s = e.getSection();
             h.badge.setVisibility(View.VISIBLE);
-            h.badge.setText("S" + (s > 0 ? s : 1));
+            h.badge.setText("S" + (e.getSection() > 0 ? e.getSection() : 1));
         }
 
-        // icon dari path JSON
-        String iconUrl = (e.getIconPath() != null && !e.getIconPath().trim().isEmpty())
-                ? BASE_REPO + e.getIconPath()
-                : DEFAULT_ICON;
+        String iconPath = (e.getIconPath() == null) ? "" : e.getIconPath().trim();
+        String iconUrl = iconPath.isEmpty()
+                ? ""
+                : (iconPath.startsWith("http://") || iconPath.startsWith("https://"))
+                ? iconPath
+                : iconPath.startsWith("/") ? (BASE_ICON + iconPath.substring(iconPath.lastIndexOf('/') + 1))
+                : BASE_ICON + iconPath;
 
         Picasso.get()
                 .load(iconUrl)
-                .into(h.icon, new Callback() {
-                    @Override public void onSuccess() {}
-                    @Override public void onError(Exception ex) {
-                        Picasso.get().load(DEFAULT_ICON).into(h.icon);
-                    }
-                });
+                .error(R.drawable.default_icon) // ✅ drawable lokal
+                .into(h.icon);
 
         h.itemView.setOnClickListener(v -> {
             DetailEmblemDialog dialog = DetailEmblemDialog.newInstance(e);
@@ -214,22 +189,16 @@ public class ListEmblemSectionAdapter extends RecyclerView.Adapter<RecyclerView.
     }
 
     @Override
-    public int getItemCount() {
-        return rows.size();
-    }
+    public int getItemCount() { return rows.size(); }
 
     static class HeaderVH extends RecyclerView.ViewHolder {
         TextView title;
-        HeaderVH(@NonNull View itemView) {
-            super(itemView);
-            title = (TextView) itemView;
-        }
+        HeaderVH(@NonNull View itemView) { super(itemView); title = (TextView) itemView; }
     }
 
     static class ItemVH extends RecyclerView.ViewHolder {
         ImageView icon;
         TextView txtName, txtSub, badge;
-
         ItemVH(@NonNull View itemView, ImageView icon, TextView txtName, TextView txtSub, TextView badge) {
             super(itemView);
             this.icon = icon;

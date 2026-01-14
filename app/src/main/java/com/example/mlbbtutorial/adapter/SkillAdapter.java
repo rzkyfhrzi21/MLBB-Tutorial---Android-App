@@ -64,7 +64,7 @@ public class SkillAdapter extends RecyclerView.Adapter<SkillAdapter.SkillViewHol
 
         Picasso.get()
                 .load(iconUrl)
-                .placeholder(R.drawable.default_skill)
+                .placeholder(R.drawable.default_icon)
                 .into(h.IV_SkillIcon, new com.squareup.picasso.Callback() {
                     @Override
                     public void onSuccess() {}
@@ -73,8 +73,8 @@ public class SkillAdapter extends RecyclerView.Adapter<SkillAdapter.SkillViewHol
                     public void onError(Exception e) {
                         Picasso.get()
                                 .load(DEFAULT_SKILL_IMAGE)
-                                .placeholder(R.drawable.default_skill)
-                                .error(R.drawable.default_skill)
+                                .placeholder(R.drawable.default_icon)
+                                .error(R.drawable.default_icon)
                                 .into(h.IV_SkillIcon);
                     }
                 });

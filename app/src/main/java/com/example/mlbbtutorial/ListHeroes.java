@@ -44,7 +44,7 @@ public class ListHeroes extends AppCompatActivity {
     private String selectedRole = "all";
 
     private static final String HERO_LIST_API =
-            "https://raw.githubusercontent.com/rzkyfhrzi21/mlbb-tutorial-api/refs/heads/master/heroes/list_heroes.json";
+            "https://raw.githubusercontent.com/rzkyfhrzi21/mlbb-tutorial-api/refs/heads/master/list_heroes.json";
 
     // PRIMARY COLOR
     private static final int PRIMARY = 0xFF64FFDA;

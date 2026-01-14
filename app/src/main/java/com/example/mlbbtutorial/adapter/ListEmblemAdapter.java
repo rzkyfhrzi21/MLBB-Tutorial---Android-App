@@ -4,7 +4,6 @@ import android.content.Context;
 import android.graphics.Color;
 import android.util.TypedValue;
 import android.view.Gravity;
-import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -16,25 +15,22 @@ import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.mlbbtutorial.DetailEmblemDialog;
+import com.example.mlbbtutorial.R;
 import com.example.mlbbtutorial.model.ListEmblemModel;
-import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class ListEmblemAdapter extends RecyclerView.Adapter<ListEmblemAdapter.EmblemViewHolder> {
 
     private final Context context;
     private final List<ListEmblemModel> list;
 
-    // ICON BASE dari path JSON: "/assets/emblems/...."
-    private static final String BASE_REPO =
-            "https://raw.githubusercontent.com/rzkyfhrzi21/mlbb-tutorial-api/refs/heads/master";
-
-    // DEFAULT ICON (sesuai request user)
-    private static final String DEFAULT_ICON =
-            "https://raw.githubusercontent.com/rzkyfhrzi21/mlbb-tutorial-api/refs/heads/master/assets/items/default.webp";
+    // ✅ base RAW untuk folder emblems (file: athena.webp, dll)
+    private static final String BASE_ICON =
+            "https://raw.githubusercontent.com/rzkyfhrzi21/mlbb-tutorial-api/refs/heads/master/assets/emblems/";
 
     public ListEmblemAdapter(Context context, List<ListEmblemModel> list) {
         this.context = context;
@@ -94,44 +90,40 @@ public class ListEmblemAdapter extends RecyclerView.Adapter<ListEmblemAdapter.Em
     }
 
     @Override
-    public void onBindViewHolder(@NonNull EmblemViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull EmblemViewHolder h, int position) {
         ListEmblemModel e = list.get(position);
 
-        holder.txtName.setText(e.getName());
+        h.txtName.setText(e.getName());
 
-        // Subtext beda untuk main vs ability
         if ("main".equals(e.getKind())) {
             ArrayList<String> attrs = e.getAttributes();
             String sub = (attrs != null && attrs.size() > 0)
                     ? attrs.get(0) + (attrs.size() > 1 ? " • " + attrs.get(1) : "")
                     : "Main Emblem";
-            holder.txtSub.setText(sub);
+            h.txtSub.setText(sub);
         } else {
             String sub = "Section " + e.getSection();
             if (e.getBenefits() != null && !e.getBenefits().trim().isEmpty()) {
                 sub = sub + " • " + e.getBenefits();
             }
-            holder.txtSub.setText(sub);
+            h.txtSub.setText(sub);
         }
 
-        // ICON pakai path dari JSON
-        String iconUrl = (e.getIconPath() != null && !e.getIconPath().trim().isEmpty())
-                ? BASE_REPO + e.getIconPath()
-                : DEFAULT_ICON;
+        // ✅ ICON: jika iconPath = "athena.webp" -> BASE_ICON + athena.webp
+        String iconPath = (e.getIconPath() == null) ? "" : e.getIconPath().trim();
+        String iconUrl = iconPath.isEmpty()
+                ? "" // biar langsung jatuh ke error drawable
+                : (iconPath.startsWith("http://") || iconPath.startsWith("https://"))
+                ? iconPath
+                : iconPath.startsWith("/") ? (BASE_ICON + iconPath.substring(iconPath.lastIndexOf('/') + 1))
+                : BASE_ICON + iconPath;
 
         Picasso.get()
                 .load(iconUrl)
-                .into(holder.icon, new Callback() {
-                    @Override
-                    public void onSuccess() {}
+                .error(R.drawable.default_icon) // ✅ drawable lokal
+                .into(h.icon);
 
-                    @Override
-                    public void onError(Exception ex) {
-                        Picasso.get().load(DEFAULT_ICON).into(holder.icon);
-                    }
-                });
-
-        holder.itemView.setOnClickListener(v -> {
+        h.itemView.setOnClickListener(v -> {
             DetailEmblemDialog dialog = DetailEmblemDialog.newInstance(e);
             dialog.show(((AppCompatActivity) context).getSupportFragmentManager(), "detail_emblem");
         });
@@ -146,7 +138,7 @@ public class ListEmblemAdapter extends RecyclerView.Adapter<ListEmblemAdapter.Em
         ImageView icon;
         TextView txtName, txtSub;
 
-        EmblemViewHolder(@NonNull View itemView, ImageView icon, TextView txtName, TextView txtSub) {
+        EmblemViewHolder(@NonNull android.view.View itemView, ImageView icon, TextView txtName, TextView txtSub) {
             super(itemView);
             this.icon = icon;
             this.txtName = txtName;

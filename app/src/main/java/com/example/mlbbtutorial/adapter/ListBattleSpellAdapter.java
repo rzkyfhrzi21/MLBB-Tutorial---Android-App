@@ -23,6 +23,7 @@ import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.mlbbtutorial.DetailBattleSpellDialog;
+import com.example.mlbbtutorial.R;
 import com.example.mlbbtutorial.model.ListBattleSpellModel;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
@@ -38,8 +39,6 @@ public class ListBattleSpellAdapter
 
     private static final String BASE_URL =
             "https://raw.githubusercontent.com/rzkyfhrzi21/mlbb-tutorial-api/refs/heads/master/assets/battle_spells/";
-    private static final String DEFAULT_IMAGE =
-            BASE_URL + "default.webp";
 
     public ListBattleSpellAdapter(Context context, List<ListBattleSpellModel> spellList) {
         this.context = context;
@@ -66,11 +65,10 @@ public class ListBattleSpellAdapter
         row.setGravity(Gravity.CENTER_VERTICAL);
         card.addView(row);
 
-        // ICON FRAME (CENTER FIX)
+        // ICON FRAME
         FrameLayout frame = new FrameLayout(context);
         FrameLayout.LayoutParams fp =
                 new FrameLayout.LayoutParams(dp(56), dp(56));
-        fp.gravity = Gravity.CENTER;
         frame.setLayoutParams(fp);
 
         GradientDrawable ring = new GradientDrawable();
@@ -80,25 +78,22 @@ public class ListBattleSpellAdapter
         frame.setPadding(dp(3), dp(3), dp(3), dp(3));
 
         ImageView img = new ImageView(context);
-        FrameLayout.LayoutParams ip =
-                new FrameLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT
-                );
-        ip.gravity = Gravity.CENTER;
-        img.setLayoutParams(ip);
+        img.setLayoutParams(new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+        ));
         img.setScaleType(ImageView.ScaleType.CENTER_CROP);
         frame.addView(img);
 
         LinearLayout text = new LinearLayout(context);
         text.setOrientation(LinearLayout.VERTICAL);
-        LinearLayout.LayoutParams tParam =
+        LinearLayout.LayoutParams tp =
                 new LinearLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.WRAP_CONTENT
                 );
-        tParam.leftMargin = dp(12);
-        text.setLayoutParams(tParam);
+        tp.leftMargin = dp(12);
+        text.setLayoutParams(tp);
 
         TextView name = new TextView(context);
         name.setTextColor(Color.WHITE);
@@ -119,23 +114,30 @@ public class ListBattleSpellAdapter
 
     @Override
     public void onBindViewHolder(@NonNull SpellViewHolder holder, int position) {
+
         ListBattleSpellModel spell = spellList.get(position);
 
         holder.name.setText(spell.getName());
         holder.usage.setText(spell.getUsage());
 
-        String iconName = spell.getName().toLowerCase().replace(" ", "_");
+        String iconName = spell.getName()
+                .toLowerCase()
+                .replace(" ", "_");
+
         String imageUrl = BASE_URL + iconName + ".webp";
 
+        // ✅ LOAD ICON + FALLBACK KE DRAWABLE
         Picasso.get()
                 .load(imageUrl)
                 .transform(new CircleTransform())
                 .into(holder.icon, new Callback() {
-                    @Override public void onSuccess() {}
+                    @Override
+                    public void onSuccess() {}
+
                     @Override
                     public void onError(Exception e) {
                         Picasso.get()
-                                .load(DEFAULT_IMAGE)
+                                .load(R.drawable.default_icon)
                                 .transform(new CircleTransform())
                                 .into(holder.icon);
                     }
@@ -163,6 +165,8 @@ public class ListBattleSpellAdapter
         return spellList.size();
     }
 
+    /* ================= VIEW HOLDER ================= */
+
     static class SpellViewHolder extends RecyclerView.ViewHolder {
         ImageView icon;
         TextView name, usage;
@@ -174,6 +178,8 @@ public class ListBattleSpellAdapter
             usage = u;
         }
     }
+
+    /* ================= UTIL ================= */
 
     private int dp(int v) {
         return (int) TypedValue.applyDimension(
